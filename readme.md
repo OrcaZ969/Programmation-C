@@ -1629,6 +1629,248 @@ mengxin@mengxin-VirtualBox:~/Documents/Programmation-C$ ./Part2
 3 4 5 7 8 
 ```
 
+## Part 3
+
+Input, output
+
+### Language de bois
+
+#### question 1: `fgets()`
+
+```c
+char *fgets(char *s, int size, FILE *stream);
+```
+
+> ```
+>    fgets()  reads in at most one less than size characters from stream and
+>    stores them into the buffer pointed to by s.  Reading  stops  after  an
+>    EOF  or a newline.  If a newline is read, it is stored into the buffer.
+>    A terminating null byte ('\0') is stored after the  last  character  in
+>    the buffer.
+> ```
+>
+>
+
+Threes cases that ends the lecture of `fgets()`:
+
+1. number of characters reaches the end
+2. an EOF
+3. a newline
+
+#### question 2: lecture of a file
+
+```c
+int getc(FILE *stream);
+```
+
+>        fgetc()  reads  the  next  character  from  stream and returns it as an
+>        unsigned char cast to an int, or EOF on end of file or error.
+
+```c
+FILE *fopen(const char *pathname, const char *mode);
+```
+
+> ```
+> The fopen() function opens the file whose name is the string pointed to by pathname and associates a stream with it.
+> 
+>    The argument mode points to a string beginning with one of the  follow‐
+>    ing sequences (possibly followed by additional characters, as described
+>    below):
+> 
+>    r      Open text file for reading.  The stream  is  positioned  at  the
+>           beginning of the file.
+> 
+>    r+     Open  for  reading and writing.  The stream is positioned at the           		 beginning of the file.
+> 
+>    w      Truncate file to zero length or create text  file  for  writing.
+>           The stream is positioned at the beginning of the file.
+> 
+>    w+     Open  for  reading  and writing.  The file is created if it does
+>           not exist, otherwise it is truncated.  The stream is  positioned
+>           at the beginning of the file.
+>    a      Open  for  appending (writing at end of file).  The file is cre‐
+>           ated if it does not exist.  The stream is positioned at the  end
+>           of the file.
+> 
+>    a+     Open  for  reading  and appending (writing at end of file).  The
+>           file is created if it does not exist.  The initial file position
+>           for  reading  is  at  the  beginning  of the file, but output is
+>           always appended to the end of the file.
+> ```
+>
+>
+
+```c
+void q2(){
+        FILE *stream=fopen("file.txt","r");
+        char c;
+        c=getc(stream);
+        while(c!=EOF){
+                printf("%c",c);
+                c=getc(stream);
+        }
+}
+```
+
+```bash
+mengxin@mengxin-VirtualBox:~/Documents/Programmation-C$ ./Part3
+This is a demo file.
+Here we go.
+End.
+```
+
+#### question 3:
+
+```C
+void q3(FILE* newfile){
+        int i;
+        for(i=1;i<=4;i++){
+                char name[80]="colonne";
+                char index[2];
+                index[0]=i+'0';//trick
+                index[1]='\0';//indispensable
+                strcat(name,index);
+                strcat(name,".txt");
+                FILE *colonne=fopen(name,"r");
+                int nb=rand()%8;
+                int compteur=0;
+                char phrase[101];
+                while(compteur<=nb){
+                        fgets(phrase,100,colonne);
+                        compteur++;
+                }
+                fputs(phrase,newfile);
+                fclose(colonne);
+        }
+}
+int main(){
+        FILE *bois=fopen("bois.txt","w+");
+        q3(bois);
+        fclose(bois);
+        return 0;
+}
+```
+
+```
+Et ce n'est certainement pas vous, mes chers compatriotes, qui me contredirez si je vous dis que
+l'aspiration plus que legitime de chacun au progres social
+oblige a la prise en compte encore plus effective
+d'une valorisation sans concession de nos caracteres specifiques.
+```
+
+#### question 4:
+
+```c
+void q4(){
+        int i;
+        FILE *discours=fopen("discours.txt","w+");
+        for(i=0;i<5;i++){
+                q3(discours);
+        }
+        fclose(discours);
+}
+```
+
+```
+Et ce n'est certainement pas vous, mes chers compatriotes, qui me contredirez si je vous dis que
+l'aspiration plus que legitime de chacun au progres social
+oblige a la prise en compte encore plus effective
+d'une valorisation sans concession de nos caracteres specifiques.
+Je reste fondamentalement persuade que
+la necessite de repondre a votre inquietude journaliere, que vous soyez jeunes ou ages,
+interpelle le citoyen que je suis et nous oblige tous a aller de l'avant dans la voie
+d'un plan correspondant veritablement aux exigences legitimes de chacun.
+Je reste fondamentalement persuade que
+le particularisme du a notre histoire unique
+interpelle le citoyen que je suis et nous oblige tous a aller de l'avant dans la voie
+d'une valorisation sans concession de nos caracteres specifiques.
+Des lors, sachez que je me battrai pour faire admettre que
+la volonte farouche de sortir notre pays de la crise
+a pour consequence obligatoire l'urgente nécessite
+d'un programme plus humain, plus fraternel et plus juste.
+Je tiens à vous dire ici ma determination sans faille pour clamer haut et fort que
+l'acuite des problemes de la vie quotidienne
+conforte mon desir incontestable d'aller dans le sens
+d'un processus allant vers plus d'egalite.
+```
+
+### DIY `printf()`
+
+In this part we can only use `putchar()`to display.
+
+> ```
+>    fputc() writes the character c, cast to an unsigned char, to stream.
+> 
+>    fputs()  writes  the  string  s to stream, without its terminating null
+>    byte ('\0').
+> 
+>    putc() is equivalent to fputc() except that it may be implemented as  a
+>    macro which evaluates stream more than once.
+> 
+>    putchar(c) is equivalent to putc(c, stdout).
+> ```
+
+#### question 5: unsigned int
+
+```c
+void printf_unsigned_int(unsigned int value){
+        char buffer[20];
+        int nb=0;
+        while(value>0){
+                buffer[nb++]=value%10+'0';
+                value/=10;
+        }
+        int i;
+        for(i=nb-1;i>=0;i--){
+                putchar(buffer[i]);
+        }
+        if(!nb){
+                putchar('0');
+        }
+}
+int main(){
+        printf_unsigned_int(0);
+        printf("\n");
+        printf_unsigned_int(UINT_MAX);
+        printf("\n");
+        return 0;
+}
+```
+
+```c
+mengxin@mengxin-VirtualBox:~/Documents/Programmation-C$ ./Part3
+0
+4294967295
+```
+
+#### quesiton 6: signed int
+
+```c
+void printf_signed_int(int value){
+        if(value<0){
+                putchar('-');
+                printf_unsigned_int(-1*value);
+        }else{
+                printf_unsigned_int(value);
+        }
+}
+int main(){
+        printf_signed_int(INT_MIN);
+        printf("\n");
+        printf_signed_int(INT_MAX);
+        printf("\n");
+        return 0;
+}
+```
+
+```bash
+mengxin@mengxin-VirtualBox:~/Documents/Programmation-C$ ./Part3
+-2147483648
+2147483647
+```
+
+
+
 ## References
 
 http://www.cplusplus.com/reference/cstdio/printf/
