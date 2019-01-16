@@ -1869,6 +1869,191 @@ mengxin@mengxin-VirtualBox:~/Documents/Programmation-C$ ./Part3
 2147483647
 ```
 
+#### question 7: float
+
+```C
+void printf_float(float value){
+        long entier=(long) (value);
+        if(!entier){
+                if(value<0){
+                        putchar('-');
+                }
+                putchar('0');
+        }else{
+                if(entier<0){
+                        entier*=-1;
+                }
+                char buffer[20];
+                int nb=0;
+                while(entier>0){
+                        buffer[nb++]=entier%10+'0';
+                        entier/=10;
+                }
+                int i;
+                for(i=nb-1;i>=0;i--){
+                        putchar(buffer[i]);
+                }
+                if(!nb){
+                        putchar('0');
+                }
+                //printf_signed_int(entier);
+                //precision lost because of int casting
+        }
+        putchar('.');
+        float nonentier=value-(long)value;
+        if(nonentier<0){
+                nonentier*=-1;
+        }
+        int i;
+        for(i=0;i<6;i++){
+                nonentier*=10;
+                int digit=nonentier;
+                putchar(digit+'0');
+                nonentier=nonentier-(int)nonentier;
+        }
+}
+int main(){
+        printf("%f\n",3.56f);
+        printf_float(3.56);
+        printf("\n");
+        printf("%f\n",-0.000123f);
+        printf_float(-0.000123);
+        printf("\n");
+        printf("%f\n",1e16f);
+        printf_float(1e16);
+        printf("\n");
+        return 0;
+}
+
+```
+
+```shell
+mengxin@mengxin-VirtualBox:~/Documents/Programmation-C$ ./Part3
+3.560000
+3.559999
+-0.000123
+-0.000123
+10000000272564224.000000
+10000000272564224.000000
+```
+
+#### question 9: variadic_function
+
+> Sa signature doit comporter au moins un argument nommé (ou plusieurs) et se terminer par des points de suspension, par exemple :
+>
+> int mafonction(int arg1, int arg2, ...)
+>
+> L’utilisateur peut ensuite invoquer mafonction en utilisant la notation classique :
+>
+> x = mafonction(36, 15, 3.14, &var, "blabla");
+>
+> **Remarque**
+>
+> Attention, les arguments anonymes ne subissent pas de contrôle de type au moment de la
+>
+> compilation ! L’auteur du code a la responsabilité de documenter explicitement la
+>
+> convention d’appel de sa fonction, par exemple : «tous les paramètres anonymes doivent être des flottants», ou «doivent être des pointeurs», etc. Dans le cas de printf , il y a un unique paramètre obligatoire (de type chaîne de caractères) et la convention d’appel est une correspondance non-triviale entre le contenu de cette chaîne et les arguments optionnels
+
+We must use the mecanism in the `stdarg.h`:
+
+> `va_list` pour déclarer un iterateur
+>
+> `va_start(ap, arg2)`: initialiser
+>
+> `va_arg(ap, type)` va simultanément nous renvoyer la valeur de l’argument courant et faire avancer le curseur jusqu’à l’argument suivant. Attention à bien préciser le bon type à chaque fois, sous peine de recevoir des valeur aberrantes et/ou de faire crasher le programme
+
+```c
+#include <stdarg.h>
+void print_float_list(int count,...){
+        va_list ap;//déclaration of the iterator
+        va_start(ap,count);//initialization of the iterator
+        int j;
+        for(j=0;j<count;j++){
+                printf_float(va_arg(ap,double));// ! here the type is double
+                putchar('\n');
+        }
+        va_end(ap);     
+}
+int main(){
+        print_float_list(3,3.14f,0.142857f,1.41f);
+}
+```
+
+The reason why *type* is double instead of float:
+
+```bash
+Part3.c:99:3: warning: ‘float’ is promoted to ‘double’ when passed through ‘...’
+   printf_float(va_arg(ap,float));
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Part3.c:99:3: note: (so you should pass ‘double’ not ‘float’ to ‘va_arg’)
+Part3.c:99:3: note: if this code is reached, the program will abort
+```
+
+```bash
+mengxin@mengxin-VirtualBox:~/Documents/Programmation-C$ ./Part3
+3.140000
+0.142857
+1.409999
+```
+
+If instead of 3, we entered 4 for counter:
+
+```bash
+mengxin@mengxin-VirtualBox:~/Documents/Programmation-C$ ./Part3
+3.140000
+0.142857
+1.409999
+0.000000
+```
+
+#### question 10: my own `printf()`
+
+```c
+void mon_printf(char *string,...){
+        va_list ap;
+        int i=0;
+        char c;
+        va_start(ap,string);
+        while((c=string[i++])!='\0'){
+                if(c!='%'){
+                        putchar(c);
+                }else{
+                        char marqueur=string[i++];
+                        if(marqueur=='d'){
+                                printf_signed_int(va_arg(ap,int));
+                        }
+                        else if(marqueur=='u'){
+                                printf_unsigned_int(va_arg(ap,unsigned int));
+                        }
+                        else if(marqueur=='f'){
+                                printf_float(va_arg(ap,double));
+                        }
+                        else if(marqueur=='c'){
+                                putchar(va_arg(ap,int));
+                        }
+                        else if(marqueur=='s'){
+                                char* str=va_arg(ap,char*);
+                                int j=0;
+                                while(str[j]!='\0'){
+                                        putchar(str[j++]);
+                                }
+                        }
+                }
+        }
+}
+int main(){
+        mon_printf("texte:%s\nnb entier:%d\nnb a virgule:%f\n","bonjour",12345,3.141593);
+}
+```
+
+```bash
+mengxin@mengxin-VirtualBox:~/Documents/Programmation-C$ ./Part3
+texte:bonjour
+nb entier:12345
+nb a virgule:3.141592
+```
+
 
 
 ## References
